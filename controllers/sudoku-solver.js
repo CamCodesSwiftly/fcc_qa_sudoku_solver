@@ -1,6 +1,25 @@
 class SudokuSolver {
 	validate(puzzleString) {
 		//TODO: Outsource the validation part in api.js (exluding the unsolvability as it requires solve()) to here
+
+		// No puzzle input?
+		if (puzzleString === "undefined" || !puzzleString) {
+			return "Required field missing";
+		}
+
+		// puzzle input incorrect?
+		const incorrectInputRegex = /[^\.\d]/g;
+		const wrongInput = puzzleString.match(incorrectInputRegex);
+		if (wrongInput) {
+			return "Invalid characters in puzzle";
+		}
+
+		// puzzle too long or too short?
+		if (puzzleString.length < 81 || puzzleString.length > 81) {
+			return "Expected puzzle to be 81 characters long";
+		}
+
+		return true;
 	}
 
 	checkRowPlacement(puzzleString, row, column, value) {}
