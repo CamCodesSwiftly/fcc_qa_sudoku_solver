@@ -32,8 +32,69 @@ module.exports = function (app) {
 			return res.json({ error: checkValidationResult });
 		}
 
+		// correct inputs and correct value/coordinate match
 
-		if (coordinate) return res.json("temporary");
+		let board = solver.parseInput(puzzle);
+
+		let placement = solver.getCoordinates(coordinate);
+
+		// is the value already on that field?
+		let valueExists = solver.checkAlreadyExists(
+			board,
+			placement.xCoordinate,
+			placement.yCoordinate,
+			value
+		);
+		if (valueExists === true) {
+			return res.json({ valid: true });
+		}
+
+		// is the value and all prior checks okay?
+		let conflicts = [];
+		let rowConflict = solver.checkRowPlacement(
+			board,
+			placement.xCoordinate,
+			placement.yCoordinate,
+			value
+		);
+		if (rowConflict) {
+
+			conflicts.push(rowConflict);
+		}
+		let colConflict = solver.checkColPlacement(
+			board,
+			placement.xCoordinate,
+			placement.yCoordinate,
+			value
+		);
+
+		if (colConflict) conflicts.push(colConflict);
+		let regionConflict = solver.checkRegionPlacement(
+			board,
+			placement.boxNumber,
+			value
+		);
+
+		if (regionConflict) conflicts.push(regionConflict);
+
+
+
+
+
+		// value can be placed safely on that field
+		if (
+			rowConflict == false &&
+			colConflict == false &&
+			regionConflict == false
+		) {
+			return res.json({ valid: true });
+		}
+
+		// value violates row, column or region rules
+		return res.json({
+			valid: false,
+			conflict: conflicts,
+		});
 	});
 
 	app.route("/api/solve").post((req, res) => {
@@ -45,8 +106,7 @@ module.exports = function (app) {
 			return res.json({ error: validationResult });
 		}
 
-		let solution = solver.solve(puzzleString);
-
+		let solution = solver.solve(puzzleString).stringOutput;
 		// puzzle cant be solved?
 		// if the solution has a . in it, it was not solved
 		const unsolvableRegex = /\./g;

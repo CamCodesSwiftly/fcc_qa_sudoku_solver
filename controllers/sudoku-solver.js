@@ -1,7 +1,5 @@
 class SudokuSolver {
 	validate(puzzleString) {
-		//TODO: Outsource the validation part in api.js (exluding the unsolvability as it requires solve()) to here
-
 		// No puzzle input?
 		if (puzzleString === "undefined" || !puzzleString) {
 			return "Required field missing";
@@ -38,7 +36,6 @@ class SudokuSolver {
 		const coordinateRegex = /[A-I][1-9]/g;
 		let coordinateWrong = coordinate.match(coordinateRegex);
 		if (!coordinateWrong || coordinate.length > 2) {
-			console.log(coordinate);
 			return "Invalid coordinate";
 		}
 		// value is not 1-9
@@ -51,16 +48,79 @@ class SudokuSolver {
 		return true;
 	}
 
-	checkRowPlacement(puzzleString, row, column, value) {}
+	getCoordinates(input) {
+		const rowMap = { A: 0, B: 1, C: 2, D: 3, E: 4, F: 5, G: 6, H: 7, I: 8 };
+		const colMap = { 1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 7: 6, 8: 7, 9: 8 };
 
-	checkColPlacement(puzzleString, row, column, value) {}
+		const xCoordinate = colMap[input[1]];
+		const yCoordinate = rowMap[input[0]];
 
-	checkRegionPlacement(puzzleString, row, column, value) {}
+		let boxNumber;
+		if (colMap[input[1]] < 3) {
+			boxNumber = Math.floor(rowMap[input[0]] / 3);
+		} else if (colMap[input[1]] < 6) {
+			boxNumber = 3 + Math.floor(rowMap[input[0]] / 3);
+		} else {
+			boxNumber = 6 + Math.floor(rowMap[input[0]] / 3);
+		}
+
+		return { xCoordinate, yCoordinate, boxNumber };
+	}
+
+	checkAlreadyExists(board, row, column, value) {
+		if (board[column][row] == value) {
+			return true;
+		}
+		return false;
+	}
+
+	checkRowPlacement(board, column, row, value) {
+		if (board[row].includes(value) === true) {
+			return "row";
+		}
+		return false;
+	}
+	checkColPlacement(board, row, column, value) {
+		for (let i = 0; i < board[0].length; i++) {
+			if (board[i][row] == value) {
+				return "column";
+			}
+		}
+		return false;
+	}
+	checkRegionPlacement(board, box, value) {
+		// i need a better view than before, sorry
+		let regionView = transposeRegions(board);
+
+		let betterRegionView = [];
+		for (let i = 0; i < regionView.length; i++) {
+			// renn durch das ober array
+			let j = 0; // renn durch die 3er unterarrays
+			let region = [];
+			region = regionView[i][j]
+				.concat(regionView[i][j + 1])
+				.concat(regionView[i][j + 2]);
+			betterRegionView.push(region);
+			region = [];
+		}
+
+		// now i can check for the placement
+		// i got the boxes as arrays, all i need to do is to ask if the value is included
+		if (betterRegionView[box].includes(value) == true) {
+			return "region";
+		}
+		return false;
+	}
 
 	solve(puzzleString) {
 		const board = this.parseInput(puzzleString);
 		this.recursiveSolve(board);
-		const solution = this.formatOutput(board);
+		const stringOutPut = this.stringOutput(board);
+		this.matrixOutput(board);
+		const solution = {
+			stringOutput: stringOutPut,
+			matrixOutput: board,
+		};
 		return solution;
 	}
 
@@ -125,10 +185,10 @@ class SudokuSolver {
 		}
 		return true; // No conflicts found
 	}
-	// formatOutput(board) {
-	// 	return board.map((row) => row.join("")).join("");
-	// }
-	formatOutput(board) {
+	matrixOutput(board) {
+		return board.map((row) => row.join("")).join("");
+	}
+	stringOutput(board) {
 		let result = "";
 		for (let i = 0; i < 9; i++) {
 			for (let j = 0; j < 9; j++) {
@@ -140,3 +200,44 @@ class SudokuSolver {
 }
 
 module.exports = SudokuSolver;
+
+function transposeRegions(matrix) {
+	const transposedRegions = [];
+
+	// Loop through each row of regions
+	for (let regionRow = 0; regionRow < 3; regionRow++) {
+		// Loop through each column of regions
+		for (let regionCol = 0; regionCol < 3; regionCol++) {
+			const transposedRegion = transposeRegion(
+				matrix,
+				regionRow,
+				regionCol
+			);
+			transposedRegions.push(transposedRegion);
+		}
+	}
+
+	return transposedRegions;
+}
+
+function transposeRegion(matrix, regionRow, regionCol) {
+	const transposedRegion = [];
+
+	// Calculate the starting row and column indices of the region
+	const startRow = regionRow * 3;
+	const startCol = regionCol * 3;
+
+	// Loop through the rows of the region
+	for (let row = startRow; row < startRow + 3; row++) {
+		const transposedRow = [];
+		// Loop through the columns of the region
+		for (let col = startCol; col < startCol + 3; col++) {
+			// Push the element at the current position into the transposed row
+			transposedRow.push(matrix[col][row]);
+		}
+		// Push the transposed row into the transposed region
+		transposedRegion.push(transposedRow);
+	}
+
+	return transposedRegion;
+}
