@@ -22,6 +22,35 @@ class SudokuSolver {
 		return true;
 	}
 
+	validateCheck(puzzle, coordinate, value) {
+		// c) puzzle, value or coordinate missing?
+		if (
+			coordinate === "undefined" ||
+			!coordinate ||
+			value === "undefined" ||
+			!value ||
+			puzzle === "undefined" ||
+			!puzzle
+		) {
+			return "Required field(s) missing";
+		}
+		// coordinate not correct
+		const coordinateRegex = /[A-I][1-9]/g;
+		let coordinateWrong = coordinate.match(coordinateRegex);
+		if (!coordinateWrong || coordinate.length > 2) {
+			console.log(coordinate);
+			return "Invalid coordinate";
+		}
+		// value is not 1-9
+		const oneToNineRegex = /[^1-9]/g;
+		let valueNotAllowed = value.match(oneToNineRegex);
+		if (valueNotAllowed) {
+			return "Invalid value";
+		}
+
+		return true;
+	}
+
 	checkRowPlacement(puzzleString, row, column, value) {}
 
 	checkColPlacement(puzzleString, row, column, value) {}

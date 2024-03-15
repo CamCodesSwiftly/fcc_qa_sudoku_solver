@@ -10,7 +10,6 @@ module.exports = function (app) {
 		let coordinate = req.body.coordinate;
 		let value = req.body.value;
 
-		// (IGNORE missing puzzle, will handle in c)
 		// a) puzzle too long/short? b) puzzle has invalid characters?
 		let puzzleValidationResult = solver.validate(puzzle);
 		if (
@@ -22,29 +21,17 @@ module.exports = function (app) {
 		}
 
 		// c) puzzle, value or coordinate missing?
-		if (
-			coordinate === "undefined" ||
-			!coordinate ||
-			value === "undefined" ||
-			!value ||
-			puzzle === "undefined" ||
-			!puzzle
-		) {
-			return res.json({ error: "Required field(s) missing" });
+		// d) invalid value?
+		// e) invalid coordinate?
+		let checkValidationResult = solver.validateCheck(
+			puzzle,
+			coordinate,
+			value
+		);
+		if (checkValidationResult !== true) {
+			return res.json({ error: checkValidationResult });
 		}
-		// coordinate not correct
-		const coordinateRegex = /[A-I][1-9]/g;
-		let coordinateWrong = coordinate.match(coordinateRegex);
-		if (!coordinateWrong || coordinate.length > 2) {
-			console.log(coordinate);
-			return res.json({ error: "Invalid coordinate" });
-		}
-		// value is not 1-9
-		const oneToNineRegex = /[^1-9]/g;
-		let valueNotAllowed = value.match(oneToNineRegex);
-		if (valueNotAllowed) {
-			return res.json({ error: "Invalid value" });
-		}
+
 
 		if (coordinate) return res.json("temporary");
 	});
