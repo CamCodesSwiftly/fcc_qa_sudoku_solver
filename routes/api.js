@@ -57,8 +57,8 @@ module.exports = function (app) {
 			placement.yCoordinate,
 			value
 		);
-		if (rowConflict) {
 
+		if (rowConflict) {
 			conflicts.push(rowConflict);
 		}
 		let colConflict = solver.checkColPlacement(
@@ -76,10 +76,6 @@ module.exports = function (app) {
 		);
 
 		if (regionConflict) conflicts.push(regionConflict);
-
-
-
-
 
 		// value can be placed safely on that field
 		if (
